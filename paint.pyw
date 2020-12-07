@@ -6,9 +6,21 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, \
     QDesktopWidget, QAction, QFileDialog, QMessageBox, QColorDialog, \
-    QPushButton, QToolBar
+    QPushButton, QToolBar, QLabel
 from PyQt5.QtGui import QPainter, QCursor, QPen, QIcon, QImage, QFont
 from PyQt5.QtCore import Qt, QPoint, QSize
+from nPredictor import startPrediction
+
+
+def execfile(filepath, globals=None, locals=None):
+    if globals is None:
+        globals = {}
+    globals.update({
+        "__file__": filepath,
+        "__name__": "__main__",
+    })
+    with open(filepath, 'rb') as file:
+        exec(compile(file.read(), filepath, 'exec'), globals, locals)
 
 
 class CSPaint(QMainWindow):
@@ -22,19 +34,19 @@ class CSPaint(QMainWindow):
         # using window icon gotten from flaticon.com
         self.setWindowIcon(QIcon("paint.png"))
         # fixed window size (width, height)
-        self.setFixedSize(850, 650)
+        self.setFixedSize(800, 800)
         self.frameGeometry().moveCenter(
             QDesktopWidget().availableGeometry().center())
         # creating a canvas for painting
         self.image = QImage(self.size(), QImage.Format_ARGB32)
-        self.image.fill(Qt.white)
+        self.image.fill(Qt.black)
         # to track drawing Points
         self.lastPoint = QPoint()
         # creating a default button style
         defaultButtonStyle = "QPushButton {border-radius:5px; border: 1px solid black;" \
                              " border-style: outset; min-width:20px;" \
                              "padding: 5px; margin:0 3px 7px 2px; color: 	#383838} " \
-                             "QPushButton::hover:!pressed { color : 282828; font-weight:600;}" \
+                             "QPushButton::hover:!pressed { color : black;}" \
                              "QMenu::item:selected {background-color: #7CB9E8;}"
         self.setStyleSheet(defaultButtonStyle)
         # important buttons for the toolBar
@@ -47,20 +59,21 @@ class CSPaint(QMainWindow):
         self.clearButton.setCursor(QCursor(Qt.PointingHandCursor))
         self.clearButton.setFont(QFont("Helvetica", 9, QFont.Medium))
         self.clearButton.clicked.connect(self.wipeOutEverything)
-        # creating the heatmap button
-        self.heatmap = QPushButton("&Show Heatmap")
-        self.heatmap.setFont(QFont("Helvetica", 9, QFont.Medium))
-        self.heatmap.setCursor(QCursor(Qt.PointingHandCursor))
         # creating the predict Writing button
         self.predict = QPushButton("&Predict Written \n Number")
-        self.predict.setFont(QFont("Helvetica", 9, QFont.Medium))
+        self.predict.setFont(QFont("Helvetica", 8, QFont.Medium))
         self.predict.setCursor(QCursor(Qt.PointingHandCursor))
+        self.predict.clicked.connect(self.predictNumber)
+        # prediction text
+        self.predictedNumber = QLabel("-")
+        self.predictedNumber.setFont(QFont("Helvetica", 9, QFont.Medium))
         # default user controlled variables' values
         self.drawing = False
         self.brushSize = 5
-        self.brushColor = Qt.darkBlue
+        self.brushColor = Qt.white
         # open the file to store the user's mouseEvents
         self.data = open("mouseEvents.txt", "w")
+
         self.menuAndToolbar()
 
     # creating the menu bar
@@ -79,8 +92,8 @@ class CSPaint(QMainWindow):
         self.addToolBar(Qt.LeftToolBarArea, moreFunctionToolBar)
         moreFunctionToolBar.addAction(self.changeBrushColor)
         moreFunctionToolBar.addWidget(self.clearButton)
-        moreFunctionToolBar.addWidget(self.heatmap)
         moreFunctionToolBar.addWidget(self.predict)
+        moreFunctionToolBar.addWidget(self.predictedNumber)
         # adding menus and actions to our menuBar
         fileMenu = appMenu.addMenu(" File ")
         brushSize = appMenu.addMenu(" Brush Size ")
@@ -133,15 +146,38 @@ class CSPaint(QMainWindow):
         if color.isValid():
             self.brushColor = color
 
-    # clears the canvas
+    def predictNumber(self):
+        userFilePath, _ = QFileDialog.getSaveFileName(self, "Save Image", "JustClickSave.jpg",
+                                                      "JPEG(*.jpg *.jpeg);PNG(*.png);;All Files(*.*) ")
+
+        if userFilePath == "":
+            return
+        else:
+            self.image.save(userFilePath)
+            startPrediction()
+
+            with open("prediction.txt") as f:
+                prediction = f.readline()
+
+            if len(prediction) > 0:
+                self.predictedNumber.setText("Predicted Number\n" + str(prediction))
+            else:
+                self.predictedNumber.setText(""
+                                             "[To increase the prediction"
+                                             "accuracy: \n 1)use the largest brush size\n"
+                                             "2) Set BrushColor to white\n"
+                                             "3) Make sure number is at the center of the screen\n"
+                                             "4) Make sure you only clicked 'Save' when the dialog appears]")
+
+            # clears the canvas
     def wipeOutEverything(self):
-        self.image.fill(Qt.white)
+        self.image.fill(Qt.black)
         self.update()
 
     # allows the user to save current drawing
     def saveImage(self):
         userFilePath, _ = QFileDialog.getSaveFileName(self, "Save Image", "",
-                                                      ";JPEG(*.jpg *.jpeg);PNG(*.png);;All Files(*.*) ")
+                                                      "JPEG(*.jpg *.jpeg);PNG(*.png);;All Files(*.*) ")
         if userFilePath == "":
             return
         else:
