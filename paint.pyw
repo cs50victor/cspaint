@@ -1,7 +1,7 @@
 """
 - @author: Victor Atasie
 - Paint Application
-- Usability Testing (mouseEvents -> heatMaps, matplotlib)
+- Usability Testing
 """
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, \
@@ -12,17 +12,6 @@ from PyQt5.QtCore import Qt, QPoint, QSize
 from nPredictor import startPrediction
 
 
-def execfile(filepath, globals=None, locals=None):
-    if globals is None:
-        globals = {}
-    globals.update({
-        "__file__": filepath,
-        "__name__": "__main__",
-    })
-    with open(filepath, 'rb') as file:
-        exec(compile(file.read(), filepath, 'exec'), globals, locals)
-
-
 class CSPaint(QMainWindow):
     # noinspection SpellCheckingInspection
     def __init__(self):
@@ -30,7 +19,7 @@ class CSPaint(QMainWindow):
         super().__init__()
         # a window is a defined visual space used to display our app.
         # window name
-        self.setWindowTitle("CSPaint")
+        self.setWindowTitle("CSPaint (Digit Predictor)")
         # using window icon gotten from flaticon.com
         self.setWindowIcon(QIcon("paint.png"))
         # fixed window size (width, height)
@@ -60,13 +49,20 @@ class CSPaint(QMainWindow):
         self.clearButton.setFont(QFont("Helvetica", 9, QFont.Medium))
         self.clearButton.clicked.connect(self.wipeOutEverything)
         # creating the predict Writing button
-        self.predict = QPushButton("&Predict Written \n Number")
-        self.predict.setFont(QFont("Helvetica", 8, QFont.Medium))
+        self.predict = QPushButton("&Predict")
+        self.predict.setFont(QFont("Helvetica", 9, QFont.Medium))
         self.predict.setCursor(QCursor(Qt.PointingHandCursor))
         self.predict.clicked.connect(self.predictNumber)
         # prediction text
-        self.predictedNumber = QLabel("-")
+        self.predictedNumber = QLabel("Current Prediction:\n --")
         self.predictedNumber.setFont(QFont("Helvetica", 9, QFont.Medium))
+        self.predictedNumber.setStyleSheet("border-radius:2px; color: white; "
+                              "background:black;")
+        self.drawingInstructions = QLabel("\n\nINSTRUCTION:\nDraw a reasonably \n"
+                                          "scaled digit (0-9) \nwithin the dotted \n"
+                                          "square and click\n"
+                                          "the Predict button.")
+        self.drawingInstructions.setFont(QFont("Helvetica", 9, QFont.Medium))
         # default user controlled variables' values
         self.drawing = False
         self.brushSize = 5
@@ -94,6 +90,8 @@ class CSPaint(QMainWindow):
         moreFunctionToolBar.addWidget(self.clearButton)
         moreFunctionToolBar.addWidget(self.predict)
         moreFunctionToolBar.addWidget(self.predictedNumber)
+        moreFunctionToolBar.addWidget(self.drawingInstructions)
+
         # adding menus and actions to our menuBar
         fileMenu = appMenu.addMenu(" File ")
         brushSize = appMenu.addMenu(" Brush Size ")
@@ -160,16 +158,17 @@ class CSPaint(QMainWindow):
                 prediction = f.readline()
 
             if len(prediction) > 0:
-                self.predictedNumber.setText("Predicted Number\n" + str(prediction))
+                self.predictedNumber.setText("Current Prediction\n                "
+                                             + str(prediction))
             else:
                 self.predictedNumber.setText(""
-                                             "[To increase the prediction"
-                                             "accuracy: \n 1)use the largest brush size\n"
-                                             "2) Set BrushColor to white\n"
-                                             "3) Make sure number is at the center of the screen\n"
-                                             "4) Make sure you only clicked 'Save' when the dialog appears]")
+                                             "ERROR!\n- To increase the prediction"
+                                             "accuracy: \n1)use the 5px brush size\n"
+                                             "2) Make sure drawing is scaled to fill the dotted square.\n"
+                                             "3) Make sure you only clicked 'Save' when the dialog appears")
 
             # clears the canvas
+
     def wipeOutEverything(self):
         self.image.fill(Qt.black)
         self.update()
@@ -206,8 +205,11 @@ class CSPaint(QMainWindow):
 
     def paintEvent(self, event):
         canvasPainter = QPainter()
+        pen = QPen(Qt.white, 1, Qt.DashLine)
         canvasPainter.begin(self)
         canvasPainter.drawImage(self.rect(), self.image, self.image.rect())
+        canvasPainter.setPen(pen)
+        canvasPainter.drawRect(290, 290, 250, 250)
         canvasPainter.end()
 
     # function for telling the users they about to close the app

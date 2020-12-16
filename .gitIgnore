@@ -1,5 +1,5 @@
-__pycache__/
-.idea/
+__pycache__
+.idea
 .installed.cfg
 bin
 develop-eggs
@@ -8,3 +8,6 @@ downloads
 eggs
 parts
 src/*.egg-info
+presentation
+prediction.txt
+mouseEvents.txt
