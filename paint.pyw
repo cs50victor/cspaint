@@ -21,7 +21,7 @@ class CSPaint(QMainWindow):
         # window name
         self.setWindowTitle("CSPaint (Digit Predictor)")
         # using window icon gotten from flaticon.com
-        self.setWindowIcon(QIcon("paint.png"))
+        self.setWindowIcon(QIcon("./Assets/paint.png"))
         # fixed window size (width, height)
         self.setFixedSize(800, 800)
         self.frameGeometry().moveCenter(
@@ -40,7 +40,7 @@ class CSPaint(QMainWindow):
         self.setStyleSheet(defaultButtonStyle)
         # important buttons for the toolBar
         # creating the brushColor button and giving it an icon
-        self.changeBrushColor = QAction(QIcon("colorcircle.jpg"), "Brush Color", self)
+        self.changeBrushColor = QAction(QIcon("./Assets/colorcircle.jpg"), "Brush Color", self)
         self.changeBrushColor.triggered.connect(self.colorPicker)
         self.changeBrushColor.setStatusTip("Brush Color")
         # creating the clearcanvas button
