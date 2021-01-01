@@ -2,7 +2,7 @@
     CS PAINT
 </h1>
 
-![Drag Racing](https://github.com/cs50victor/personalwebsite/blob/master/src/Assets/gifs/paint.gif?raw=true)
+![Demo Gif](https://github.com/cs50victor/personalwebsite/blob/master/src/Assets/gifs/paint.gif?raw=true)
 
 <h2 style="text-decoration: underline; font-weight:400;">
     What it does...
